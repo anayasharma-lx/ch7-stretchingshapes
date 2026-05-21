@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Stretching Shapes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0; --surface:#fff; --surface2:#f0ede8; --border:#d8d4cc;
+  --text:#1a1814; --text2:#5a5650; --text3:#9a958e;
+  --blue:#2c5f9e; --red:#c0392b; --green:#1a7a4a; --orange:#e08020;
+  --font:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'DM Mono',ui-monospace,monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5;padding:24px 16px}
+.app{max-width:920px;margin:0 auto}
+
+.head{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.head-ic{width:42px;height:42px;border-radius:10px;background:var(--surface2);
+  border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:600;color:var(--text2);font-size:16px;flex-shrink:0}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:3px}
+.title{font-size:22px;font-weight:700;color:var(--text);line-height:1.2}
+
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px}
+.card-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px}
+
+.intro{font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:18px}
+.intro strong{color:var(--text)}
+
+/* Shape picker */
+.shape-toggle{display:flex;gap:0;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:3px;width:fit-content;margin:0 auto 18px}
+.shape-toggle button{padding:8px 16px;border:none;background:transparent;border-radius:6px;
+  font-family:var(--font);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.shape-toggle button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+/* Sliders */
+.sliders{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+@media (max-width:600px){.sliders{grid-template-columns:1fr}}
+.slider-block{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px}
+.slider-block .sb-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.slider-block label{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);min-width:80px}
+.slider-block .val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--blue);margin-left:auto}
+.slider-block input[type=range]{width:100%;accent-color:var(--blue);height:5px}
+
+/* Quick presets */
+.lock-row{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+.lock-row .lock-label{font-size:13px;font-weight:600;color:var(--text2)}
+.lock-btn{padding:7px 14px;border-radius:7px;background:var(--surface);border:1.5px solid var(--border);
+  font-family:var(--mono);font-size:13px;color:var(--text2);cursor:pointer;font-weight:600;transition:all .12s}
+.lock-btn:hover{border-color:var(--text3);color:var(--text)}
+.lock-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Stage */
+.stage{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;
+  padding:24px 20px;display:flex;align-items:flex-end;justify-content:center;gap:30px;min-height:320px;
+  overflow-x:auto}
+.stage-cell{display:flex;flex-direction:column;align-items:center;gap:8px}
+.stage-cell .sc-lbl{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.shape-wrap{display:flex;align-items:flex-end;justify-content:center;width:240px;height:240px;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;overflow:hidden}
+
+/* Verdict + ratios */
+.verdict-row{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;
+  padding:16px 20px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;margin-top:14px}
+.verdict-stat{text-align:center}
+.verdict-stat .vs-lbl{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.verdict-stat .vs-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);line-height:1.2}
+.verdict-stat .vs-sub{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px}
+.verdict-badge{padding:10px 18px;border-radius:8px;font-family:var(--mono);font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;border:1.5px solid;line-height:1.2;text-align:center;max-width:200px}
+.verdict-badge.good{background:#f0f7f3;color:var(--green);border-color:var(--green)}
+.verdict-badge.bad{background:#fbf2f0;color:var(--red);border-color:var(--red)}
+
+/* Factor display */
+.factors{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:12px;
+  padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px}
+.factor-stat{font-family:var(--mono);font-size:13px}
+.factor-stat .fs-name{color:var(--text2);font-weight:600}
+.factor-stat .fs-val{color:var(--text);font-weight:700;margin-left:6px}
+.factor-stat .fs-eq{color:var(--text3);margin:0 4px}
+
+.insight{background:#fff8f0;border:1px solid #f0d8c0;border-left:3px solid var(--orange);
+  border-radius:0 8px 8px 0;padding:12px 15px;font-size:13px;color:#6b4400;
+  line-height:1.65;margin-top:14px}
+.insight strong{color:#4a2e00;font-weight:700}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <div class="head-ic">7.1</div>
+    <div>
+      <div class="lbl">Chapter 7 · Section 7.1</div>
+      <div class="title">Stretching Shapes</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="intro">
+      An image looks "right" only when its width and height scale by the <strong>same factor</strong>. Stretch one without the other and the picture distorts. Drag the two sliders to scale the shape on the right — the original (left) stays for comparison. Watch what happens to the width:height ratio.
+    </p>
+
+    <div class="shape-toggle">
+      <button class="active" data-shape="house">House</button>
+      <button data-shape="face">Face</button>
+      <button data-shape="tiger">Tiger</button>
+    </div>
+
+    <div class="sliders">
+      <div class="slider-block">
+        <div class="sb-row"><label>Width ×</label><span class="val" id="sx-val">1.0</span></div>
+        <input type="range" id="sx" min="40" max="200" value="100">
+      </div>
+      <div class="slider-block">
+        <div class="sb-row"><label>Height ×</label><span class="val" id="sy-val">1.0</span></div>
+        <input type="range" id="sy" min="40" max="200" value="100">
+      </div>
+    </div>
+
+    <div class="lock-row">
+      <span class="lock-label">Quick try:</span>
+      <button class="lock-btn" data-sx="100" data-sy="100">Original (1× 1×)</button>
+      <button class="lock-btn" data-sx="150" data-sy="150">Both 1.5×</button>
+      <button class="lock-btn" data-sx="60" data-sy="60">Both 0.6×</button>
+      <button class="lock-btn" data-sx="150" data-sy="100">Stretch wide</button>
+      <button class="lock-btn" data-sx="100" data-sy="160">Stretch tall</button>
+    </div>
+
+    <div class="stage" id="stage"></div>
+
+    <div class="verdict-row" id="verdict"></div>
+
+    <div class="factors" id="factors"></div>
+
+    <div class="insight" id="insight"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-lbl">What "proportional" means</div>
+    <p class="intro" style="margin-bottom:0">
+      Two ratios <strong>a : b</strong> and <strong>c : d</strong> are <em>proportional</em> when the same multiplier takes you from one pair to the other. Algebraically: <strong>c = f·a and d = f·b</strong> for the same f. Geometrically: same shape, possibly bigger or smaller — never stretched in just one direction.
+    </p>
+  </div>
+</div>
+
+<script>
+const state = { shape: 'house', sx: 100, sy: 100 };
+const BASE_W = 200, BASE_H = 160;  // notional original dimensions in mm
+
+const SHAPES = {
+  // Each shape: SVG path content sized to fit in viewBox 0 0 200 160 (BASE_W × BASE_H)
+  house: `
+    <rect x="40" y="70" width="120" height="80" fill="#fff" stroke="#2c5f9e" stroke-width="3"/>
+    <polygon points="30,75 100,20 170,75" fill="#e08020" stroke="#c0392b" stroke-width="2.5"/>
+    <rect x="85" y="100" width="30" height="50" fill="#2c5f9e"/>
+    <rect x="55" y="85" width="20" height="20" fill="#2c5f9e" opacity="0.6"/>
+    <rect x="125" y="85" width="20" height="20" fill="#2c5f9e" opacity="0.6"/>
+  `,
+  face: `
+    <ellipse cx="100" cy="80" rx="55" ry="65" fill="#fff5dc" stroke="#5a5650" stroke-width="2.5"/>
+    <ellipse cx="80" cy="70" rx="6" ry="9" fill="#1a1814"/>
+    <ellipse cx="120" cy="70" rx="6" ry="9" fill="#1a1814"/>
+    <path d="M 75 105 Q 100 125 125 105" fill="none" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 60 50 Q 80 35 100 50" fill="none" stroke="#5a5650" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 100 50 Q 120 35 140 50" fill="none" stroke="#5a5650" stroke-width="3" stroke-linecap="round"/>
+  `,
+  tiger: `
+    <ellipse cx="100" cy="100" rx="80" ry="40" fill="#e08020" stroke="#5a5650" stroke-width="2"/>
+    <circle cx="40" cy="80" r="22" fill="#e08020" stroke="#5a5650" stroke-width="2"/>
+    <polygon points="28,62 38,52 35,67" fill="#e08020" stroke="#5a5650" stroke-width="1.5"/>
+    <polygon points="52,62 42,52 45,67" fill="#e08020" stroke="#5a5650" stroke-width="1.5"/>
+    <circle cx="33" cy="78" r="2.5" fill="#1a1814"/>
+    <circle cx="47" cy="78" r="2.5" fill="#1a1814"/>
+    <circle cx="40" cy="86" r="2" fill="#1a1814"/>
+    <line x1="85" y1="75" x2="92" y2="65" stroke="#1a1814" stroke-width="2"/>
+    <line x1="105" y1="72" x2="112" y2="62" stroke="#1a1814" stroke-width="2"/>
+    <line x1="125" y1="75" x2="132" y2="65" stroke="#1a1814" stroke-width="2"/>
+    <line x1="85" y1="125" x2="92" y2="135" stroke="#1a1814" stroke-width="2"/>
+    <line x1="105" y1="128" x2="112" y2="138" stroke="#1a1814" stroke-width="2"/>
+    <line x1="125" y1="125" x2="132" y2="135" stroke="#1a1814" stroke-width="2"/>
+    <path d="M 175 95 Q 195 90 198 70" fill="none" stroke="#5a5650" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="55" cy="140" rx="8" ry="5" fill="#1a1814"/>
+    <ellipse cx="145" cy="140" rx="8" ry="5" fill="#1a1814"/>
+  `
+};
+
+document.querySelectorAll('.shape-toggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.shape-toggle button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.shape = b.dataset.shape;
+    render();
+  });
+});
+
+['sx','sy'].forEach(k => {
+  document.getElementById(k).addEventListener('input', e => {
+    state[k] = +e.target.value;
+    render();
+  });
+});
+
+document.querySelectorAll('.lock-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    state.sx = +b.dataset.sx;
+    state.sy = +b.dataset.sy;
+    document.getElementById('sx').value = state.sx;
+    document.getElementById('sy').value = state.sy;
+    render();
+  });
+});
+
+function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while(b){ [a,b] = [b, a%b]; } return a; }
+
+function simplifyRatio(a, b){
+  // Both in mm (integers). Return [a', b'] in simplest form.
+  if(a === 0 || b === 0) return [a, b];
+  const g = gcd(a, b);
+  return [a/g, b/g];
+}
+
+function renderShape(scaleX, scaleY, frameSize){
+  // Renders the shape in an svg viewport sized to fit in a frame of `frameSize` px square,
+  // honoring the scale factors relative to original (BASE_W x BASE_H).
+  // Compute actual w/h, then scale them to fit in frameSize while preserving relative size.
+  const wMM = BASE_W * scaleX / 100;  // sx=100 means 1.0×
+  const hMM = BASE_H * scaleY / 100;
+  // Max dimension we want to display
+  const maxMM = Math.max(BASE_W * 2, BASE_H * 2); // 2× as max
+  const px = (mm) => mm / maxMM * frameSize;
+  const wPx = px(wMM);
+  const hPx = px(hMM);
+  // SVG inner uses viewBox 0 0 200 160 so the shape's intrinsic coords match BASE_W×BASE_H.
+  const inner = SHAPES[state.shape];
+  return `<svg width="${wPx}" height="${hPx}" viewBox="0 0 200 160" preserveAspectRatio="none">${inner}</svg>`;
+}
+
+function render(){
+  document.getElementById('sx-val').textContent = (state.sx/100).toFixed(2) + '×';
+  document.getElementById('sy-val').textContent = (state.sy/100).toFixed(2) + '×';
+
+  // Highlight matching lock-btn
+  document.querySelectorAll('.lock-btn').forEach(b => {
+    b.classList.toggle('active', +b.dataset.sx === state.sx && +b.dataset.sy === state.sy);
+  });
+
+  // Stage: original and scaled side by side
+  const frame = 200;
+  const origW = BASE_W, origH = BASE_H;
+  const newW = Math.round(BASE_W * state.sx / 100);
+  const newH = Math.round(BASE_H * state.sy / 100);
+
+  document.getElementById('stage').innerHTML = `
+    <div class="stage-cell">
+      <div class="shape-wrap">${renderShape(100, 100, frame)}</div>
+      <div class="sc-lbl">Original · ${origW} × ${origH} mm</div>
+    </div>
+    <div class="stage-cell">
+      <div class="shape-wrap">${renderShape(state.sx, state.sy, frame)}</div>
+      <div class="sc-lbl">Scaled · ${newW} × ${newH} mm</div>
+    </div>
+  `;
+
+  // Ratios
+  const [origA, origB] = simplifyRatio(origW, origH);
+  const [newA, newB] = simplifyRatio(newW, newH);
+  const proportional = origA === newA && origB === newB;
+
+  document.getElementById('verdict').innerHTML = `
+    <div class="verdict-stat">
+      <div class="vs-lbl">Original w : h</div>
+      <div class="vs-val">${origW} : ${origH}</div>
+      <div class="vs-sub">= ${origA} : ${origB} (simplest)</div>
+    </div>
+    <div class="verdict-stat">
+      <div class="vs-lbl">Scaled w : h</div>
+      <div class="vs-val" style="color:${proportional?'var(--green)':'var(--red)'}">${newW} : ${newH}</div>
+      <div class="vs-sub">= ${newA} : ${newB} (simplest)</div>
+    </div>
+    <div class="verdict-badge ${proportional?'good':'bad'}">
+      ${proportional ? '✓ Same shape — proportional' : '✗ Distorted — not proportional'}
+    </div>
+  `;
+
+  // Factor breakdown
+  const fx = (state.sx / 100).toFixed(2);
+  const fy = (state.sy / 100).toFixed(2);
+  document.getElementById('factors').innerHTML = `
+    <div class="factor-stat">
+      <span class="fs-name">Width factor</span><span class="fs-val" style="color:var(--blue)">×${fx}</span>
+    </div>
+    <div class="factor-stat">
+      <span class="fs-name">Height factor</span><span class="fs-val" style="color:var(--orange)">×${fy}</span>
+    </div>
+    <div class="factor-stat">
+      <span class="fs-name">Same factor?</span>
+      <span class="fs-val" style="color:${proportional?'var(--green)':'var(--red)'}">${proportional?'Yes':'No'}</span>
+    </div>
+  `;
+
+  // Insight
+  const ins = document.getElementById('insight');
+  if(proportional){
+    if(state.sx === 100){
+      ins.innerHTML = `Both factors are 1× — this is the original. The width:height ratio is <strong>${origA} : ${origB}</strong>.`;
+    } else {
+      ins.innerHTML = `Both dimensions scale by the same factor (×${fx}), so the simplified ratio stays at <strong>${origA} : ${origB}</strong>. The shape just gets bigger or smaller — never distorted.`;
+    }
+  } else {
+    ins.innerHTML = `Width scales by <strong>×${fx}</strong> but height scales by <strong>×${fy}</strong>. Different factors → the simplified ratio changes from ${origA} : ${origB} to <strong>${newA} : ${newB}</strong>, and the shape looks stretched or squashed.`;
+  }
+}
+
+render();
+</script>
+</body>
+</html>
